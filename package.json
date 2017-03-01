@@ -1,0 +1,22 @@
+{
+  "name": "copldots",
+  "version": "0.1.0",
+  "description": "Contracted object property layer description object to schema",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/opws/copldots.git"
+  },
+  "keywords": [
+    "json-schema"
+  ],
+  "author": "Stuart P. Bentley <stuart@testtrack4.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/opws/copldots/issues"
+  },
+  "homepage": "https://github.com/opws/copldots#readme"
+}
