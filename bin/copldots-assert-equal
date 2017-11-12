@@ -1,0 +1,18 @@
+#! /usr/bin/env node
+var yaml = require('js-yaml');
+var Ajv = require('ajv');
+var ajv = new Ajv();
+var copldots = require('../index.js');
+var copldSchema = require('../copld-schema.json');
+var validate = ajv.compile(copldSchema);
+var fs = require('fs');
+var sourceDoc = yaml.safeLoad(fs.readFileSync(process.argv[2], 'UTF-8'));
+var valid = validate(sourceDoc);
+var assert = require('assert');
+if (!valid) {
+  console.error(validate.errors);
+  process.exit(1);
+} else {
+  assert.deepEqual(copldots(sourceDoc),
+    JSON.parse(fs.readFileSync(process.argv[3])));
+}
