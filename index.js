@@ -16,7 +16,7 @@ function copldotsClonePotentiallyCondensedProperties(source, opts) {
       clone[key.slice(0,-1)] =
         copldotsCloneContractedPropertiesLayer(source[key], opts);
     } else {
-      clone[key] = copldotsCloneSchemaObject(source[key], opts);
+      clone[key] = copldotsCloneSchemaOrBoolean(source[key], opts);
     }
   }
   return clone;
@@ -28,7 +28,7 @@ function copldotsCloneSchemaProperties(source, opts) {
   var n = keys.length;
   for (var i = 0; i < n; ++i) {
     var key = keys[i];
-    clone[key] = copldotsCloneSchemaObject(source[key], opts);
+    clone[key] = copldotsCloneSchemaOrBoolean(source[key], opts);
   }
   return clone;
 }
@@ -43,10 +43,19 @@ function copldotsCloneSchemaOrStringArrayProperties(source, opts) {
     if (Array.isArray(source[key])) {
       clone[key] = cloneArray(source[key]);
     } else {
-      clone[key] = copldotsCloneSchemaObject(source[key], opts);
+      clone[key] = copldotsCloneSchemaOrBoolean(source[key], opts);
     }
   }
   return clone;
+}
+
+// per draft-06's redefinition of schemas to be objects or booleans
+function copldotsCloneSchemaOrBoolean(source, opts) {
+  if (typeof(source) == 'boolean') {
+    return source;
+  } else {
+    return copldotsCloneSchemaObject(source, opts);
+  }
 }
 
 function copldotsCloneSchemaObject(source, opts) {
@@ -64,7 +73,7 @@ function copldotsCloneSchemaObject(source, opts) {
         if (Array.isArray(source[key])) {
           clone[key] = copldotsCloneSchemaArray(source[key], opts);
         } else {
-          clone[key] = copldotsCloneSchemaObject(source[key], opts);
+          clone[key] = copldotsCloneSchemaOrBoolean(source[key], opts);
         } break;
 
       case 'allOf':
@@ -74,16 +83,12 @@ function copldotsCloneSchemaObject(source, opts) {
         break;
 
       case 'not':
-        clone[key] = copldotsCloneSchemaObject(source[key], opts);
-        break;
-
+      case 'contains':
       case 'additionalItems':
       case 'additionalProperties':
-        if (typeof source[key] == 'boolean') {
-          clone[key] = source[key]; // boolean clone
-        } else {
-          clone[key] = copldotsCloneSchemaObject(source[key], opts);
-        } break;
+      case 'propertyNames':
+        clone[key] = copldotsCloneSchemaOrBoolean(source[key], opts);
+        break;
 
       case 'definitions':
       case 'patternProperties':
@@ -109,6 +114,10 @@ function copldotsCloneSchemaObject(source, opts) {
 
       // array of anything
       case 'enum':
+      /* 'examples' should go here (it is also an array of anything), but it
+         appears to have been omitted from the meta-schema: until
+         https://github.com/json-schema-org/json-schema-spec/pull/481 is
+         resolved, let 'examples' fall through to cloneAdditionalProperties */
       // string array
       case 'required':
         clone[key] = cloneArray(source[key]);
@@ -116,19 +125,35 @@ function copldotsCloneSchemaObject(source, opts) {
 
       // translate schema appropriately
       case '$schema':
-        if (source[key] == "https://schemata.opws.org/meta/copld.json#") {
+        if (source[key] == // copld schema id (draft-06)
+          "https://copld-schema.opws.org/draft-06/schema.json#") {
+
+          clone[key] = "http://json-schema.org/draft-06/schema#";
+
+        } else if ( source[key] == // copld schema id (draft-04)
+          "https://copld-schema.opws.org/draft-04/schema.json#" ||
+            // legacy copld schema id (draft-04)
+            source[key] == "https://schemata.opws.org/meta/copld.json#") {
+
           clone[key] = "http://json-schema.org/draft-04/schema#";
-        } else {
+
+        } else { // probably appropriate JSON Schema id
           clone[key] = source[key]; // string clone
         } break;
 
       // other strings
       case '$ref':
-      case 'id':
+      case '$id': // (draft-06)
+      case 'id': // (draft-04)
       case 'title':
       case 'description':
       // formatted strings
       case 'pattern':
+      // booleans
+      case 'uniqueItems':
+      // booleans (draft-04) / numbers (draft-06)
+      case 'exclusiveMaximum':
+      case 'exclusiveMinimum':
       // numbers
       case 'multipleOf':
       case 'maximum':
@@ -140,14 +165,11 @@ function copldotsCloneSchemaObject(source, opts) {
       case 'minItems':
       case 'maxProperties':
       case 'minProperties':
-      // booleans
-      case 'exclusiveMaximum':
-      case 'exclusiveMinimum':
-      case 'uniqueItems':
         clone[key] = source[key];
         break;
 
       // anything
+      case 'const':
       case 'default':
         clone[key] = cloneOther(source[key], key);
         break;
@@ -162,7 +184,7 @@ function copldotsCloneSchemaObject(source, opts) {
 }
 
 function copldotsCloneSchemaArray(source, opts) {
-  return source.map(function(obj){copldotsCloneSchemaObject(obj, opts)});
+  return source.map(function(obj){copldotsCloneSchemaOrBoolean(obj, opts)});
 }
 
 module.exports = function copldots(copld, opts) {
@@ -171,5 +193,5 @@ module.exports = function copldots(copld, opts) {
   opts.cloneArray = opts.cloneArray || opts.cloneOther;
   opts.cloneAdditionalProperties =
     opts.cloneAdditionalProperties || opts.cloneOther;
-  return copldotsCloneSchemaObject(copld, opts);
+  return copldotsCloneSchemaOrBoolean(copld, opts);
 };
