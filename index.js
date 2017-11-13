@@ -123,6 +123,7 @@ function copldotsCloneSchemaObject(source, opts) {
         } break;
 
       // other strings
+      case '$ref':
       case 'id':
       case 'title':
       case 'description':
