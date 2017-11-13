@@ -11,9 +11,10 @@
     "url": "git+https://github.com/opws/copldots.git"
   },
   "keywords": [
-    "json-schema"
+    "json-schema",
+    "copld"
   ],
-  "author": "Stuart P. Bentley <stuart@testtrack4.com>",
+  "author": "Stuart P. Bentley <s@stuartpb.com>",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/opws/copldots/issues"
