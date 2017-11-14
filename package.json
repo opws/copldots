@@ -1,6 +1,6 @@
 {
   "name": "copldots",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Contracted object property layer description object to schema",
   "main": "index.js",
   "scripts": {
