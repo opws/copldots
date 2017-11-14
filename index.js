@@ -114,10 +114,7 @@ function copldotsCloneSchemaObject(source, opts) {
 
       // array of anything
       case 'enum':
-      /* 'examples' should go here (it is also an array of anything), but it
-         appears to have been omitted from the meta-schema: until
-         https://github.com/json-schema-org/json-schema-spec/pull/481 is
-         resolved, let 'examples' fall through to cloneAdditionalProperties */
+      case 'examples':
       // string array
       case 'required':
         clone[key] = cloneArray(source[key]);
